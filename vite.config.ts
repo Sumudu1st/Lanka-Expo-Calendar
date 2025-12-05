@@ -3,5 +3,5 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: './', // Ensures relative paths for GitHub Pages deployment
+  base: '/Lanka-Expo-Calendar/', // GitHub Pages base path
 });
