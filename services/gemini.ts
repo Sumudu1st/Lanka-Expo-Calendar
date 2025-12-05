@@ -2,14 +2,13 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Exhibition } from "../types";
 import { format, addMonths } from "date-fns";
 
-const getClient = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
+const getClient = (apiKey: string) => new GoogleGenAI({ apiKey });
 
 /**
  * Step 1: Search for exhibitions using the Google Search Tool.
- * Note: We cannot use responseSchema with Google Search tool.
  */
-async function searchExhibitionsRaw(): Promise<string> {
-  const ai = getClient();
+async function searchExhibitionsRaw(apiKey: string): Promise<string> {
+  const ai = getClient(apiKey);
   const now = new Date();
   const currentMonth = format(now, "MMMM yyyy");
   const nextMonth = format(addMonths(now, 1), "MMMM yyyy");
@@ -32,7 +31,6 @@ async function searchExhibitionsRaw(): Promise<string> {
       },
     });
 
-    // We just need the text summary which contains the grounded information
     return response.text || "No information found.";
   } catch (error) {
     console.error("Search Step Failed:", error);
@@ -43,8 +41,8 @@ async function searchExhibitionsRaw(): Promise<string> {
 /**
  * Step 2: Parse the raw text into structured JSON using a strict schema.
  */
-async function parseExhibitionsFromText(rawText: string): Promise<Exhibition[]> {
-  const ai = getClient();
+async function parseExhibitionsFromText(apiKey: string, rawText: string): Promise<Exhibition[]> {
+  const ai = getClient(apiKey);
 
   const extractionPrompt = `
     Analyze the following text which contains information about exhibitions in Sri Lanka.
@@ -99,9 +97,9 @@ async function parseExhibitionsFromText(rawText: string): Promise<Exhibition[]> 
   }
 }
 
-export const fetchExhibitions = async (): Promise<Exhibition[]> => {
+export const fetchExhibitions = async (apiKey: string): Promise<Exhibition[]> => {
   // 2-Step Process: Search then Structure
-  const rawData = await searchExhibitionsRaw();
-  const structuredData = await parseExhibitionsFromText(rawData);
+  const rawData = await searchExhibitionsRaw(apiKey);
+  const structuredData = await parseExhibitionsFromText(apiKey, rawData);
   return structuredData;
 };
